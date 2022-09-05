@@ -29,7 +29,7 @@ float random_between(float min, float max) {
 
 }
 
-int64_t time() {
+uint64_t time() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()).count();
 }
