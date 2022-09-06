@@ -6,8 +6,8 @@ out vec3 v_color;
 
 void main()
 {
-    gl_Position = vec4(in_position, 0f, 1.0f);
-    v_color = vec3(in_velocity, 0);
+    gl_Position = vec4(in_position, 0.0f, 1.0f);
+    v_color = vec3(in_velocity, 0.0f);
     // v_color = vec3(1, 1, 0);
 }
 // EOF

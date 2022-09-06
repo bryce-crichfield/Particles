@@ -8,38 +8,46 @@
 #include "shader.hh"
 #include "util.hh"
 
-enum class ShaderID {
-    ID, PARTICLE_BASIC, COUNT
+enum class ShaderID
+{
+    ID,
+    PARTICLE_BASIC,
+    COUNT
 };
 const uint ShaderIDCount = static_cast<uint>(ShaderID::COUNT);
 
-#define S1 2
+#define S1 1000
 #define BUFFER_COUNT 1
 
-class ParticleApplication : public Application 
+class ParticleApplication : public Application
 {
 private:
     Library<ShaderIDCount, ShaderID> shaders;
-    // ParticleBuffer<S1> b1;
-    // ParticleBuffer<S2> b2; 
-    ParticleGroup<S1, BUFFER_COUNT>* b1;
+    ParticleGroup<S1, BUFFER_COUNT> *b1;
 public:
-    void Setup()  override {
+    void Setup() override
+    {
         width = height = 750;
-        fps = 1000;
+        ups = 30;
+        fps = 25;
     }
-    void Init()   override { 
+    void Init() override
+    {
         shaders.Load(ShaderID::PARTICLE_BASIC, "shaders/vpartbasic.glsl", "shaders/fpartbasic.glsl");
-        glPointSize(15);
+        glPointSize(2);
         b1 = new ParticleGroup<S1, BUFFER_COUNT>();
     }
-    void Input()  override { }
-    void Update(float delta) override { 
-        b1->Update<S1>(*b1, .15, .05, .25, delta, 
-            glm::vec4(-1, 1, -1, 1), 1);
+    void Input() override
+    {
     }
-    void Render(float delta) override {
-        b1->Render(); 
+    void Update(float delta) override
+    {
+        b1->Update<S1>(*b1, .002, .005, .15, delta,
+                       glm::vec4(-1, 1, -1, 1), 0.001);
+    }
+    void Render(float delta) override
+    {
+        b1->Render();
     }
 };
 

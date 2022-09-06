@@ -6,6 +6,8 @@
 #include <random>
 #include <chrono>
 #include <math.h>
+#include <glm/vec2.hpp>
+#include <glm/vec4.hpp>
 
 void* read(const char* path) {
     void* buffer;
@@ -38,5 +40,16 @@ float length(float x, float y) {
     return sqrt((x*x)+(y*y));
 }
 
+void limit(glm::vec2& vec, glm::vec4 bounds, float nudge)
+{
+    if (vec.x < bounds.x)
+        vec.x = bounds.x + nudge;
+    if (vec.x > bounds.y)
+        vec.x = bounds.y - nudge;
+    if (vec.y < bounds.z)
+        vec.y = bounds.z + nudge;
+    if (vec.y > bounds.w)
+        vec.y = bounds.w - nudge; 
+}
 
 #endif

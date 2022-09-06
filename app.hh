@@ -71,7 +71,7 @@ private:
 
 protected:
     uint width, height;
-    uint fps;
+    uint fps, ups;
 
 public:
     // Non-OpenGL Setup
@@ -88,22 +88,32 @@ public:
     {
         m_setup();
         m_init();
-        uint64_t last_t = time();
-        uint64_t delta_t = 0;
-        uint64_t delta_a = 0;
+        uint64_t last_update = time();
+        uint64_t last_render = time();
+        uint64_t delta_update = 0;
+        uint64_t delta_render = 0;
+        uint64_t accum_update = 0;
+        uint64_t accum_render = 0;
         while (isRunning())
         {
-            delta_t = time() - last_t;
-            last_t = time();
-            delta_a += delta_t;
+            uint64_t now = time();
+            delta_update = now - last_update;
+            last_update = now;
+            delta_render = now - last_render;
+            delta_render = now;
+            accum_update += delta_update;
+            accum_render += delta_render;
             m_input();
-            if (delta_a >= (uint64_t)1000 / fps)
+            if (accum_update >= (uint64_t)1000/ups)
             {
-                // std::cout << delta_a << std::endl;
-                m_update(delta_a * .001f);
-                delta_a = 0;
+                m_update(accum_update * .001f);
+                accum_update = 0;
             }
-            m_render(delta_t * .001f);
+            if (accum_render >= (uint64_t)1000/fps)
+            {
+                m_render(accum_render * .001f);
+                accum_render = 0;
+            }
         }
     }
 

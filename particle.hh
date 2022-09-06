@@ -136,8 +136,12 @@ struct ParticleGroup
             std::array<glm::vec2, SIZE>& vel = particles.at(static_cast<uint>(ParticleAttribute::VELOCITY));
             for (uint i = 0; i < SIZE; i++) 
             {
-                pos.at(i) = glm::vec2(random_between(-.75, .75));
-                vel.at(i) = glm::vec2(random_between(-.1, .1));
+                pos.at(i) = glm::vec2(
+                    random_between(-1, 1),
+                    random_between(-1, 1));
+                vel.at(i) = glm::vec2(
+                    random_between(-.1, .1),
+                    random_between(-.1, .1));
             }
         }
 
@@ -225,36 +229,49 @@ struct ParticleGroup
     template <uint S2>
     void Update(ParticleGroup<S2, BUFFER_COUNT> &that, float G, 
         float Min_R, float Max_R, float delta,
-        glm::vec4 bounds, float jettison)
+        glm::vec4 bounds, float drag)
     {
+        #pragma omp parallel for
         for (uint i = 0; i < SIZE; i++)
         {
             glm::vec2& p1_p = particles.at(static_cast<uint>(ParticleAttribute::POSITION)).at(i);
             glm::vec2& p1_v = particles.at(static_cast<uint>(ParticleAttribute::VELOCITY)).at(i);
 
-            if (i == 0) {
-                std::cout << p1_p.x << ", " << p1_p.y << std::endl;
-                std::cout << p1_v.x << ", " << p1_v.y << std::endl;
-            }
-
-            glm::vec2 acceleration;
+            glm::vec2 acceleration(0);
             for (uint j = 0; j < S2; j++) 
             {
+                if (i == j) continue;
                 glm::vec2& p2_p = that.particles.at(static_cast<uint>(ParticleAttribute::POSITION)).at(j);
                 glm::vec2& p2_v = that.particles.at(static_cast<uint>(ParticleAttribute::VELOCITY)).at(j);
                 auto difference = p1_p - p2_p;
                 auto radius = glm::length(difference);
                 if (radius != 0 && radius > Min_R && radius < Max_R)
-                    acceleration = acceleration + (difference / radius);
+                    acceleration += (difference / radius);
+                if (radius < Min_R) {
+                    acceleration -= difference / radius;
+                }
             }
-            p1_v += (acceleration * -G * delta);
-            p1_p += p1_p + (p1_v * delta);
+            p1_v += acceleration * -G * delta;
 
-            if (p1_p.x <= bounds.x || p1_p.x >= bounds.x)
-                p1_p = glm::vec2(p1_p.x * -jettison, p1_p.y);
-            
-            if (p1_p.y <= bounds.z || p1_p.y >= bounds.w)
-                p1_p = glm::vec2(p1_p.x, p1_p.y * -jettison);
+            // Apply the force of drag as a function of the current velocity
+            // The greater the velocity, the greater the drag 
+            if (abs(p1_v.x) < drag) p1_v.x = 0;
+            else if (abs(p1_v.x) > 0.0f) {
+                if (p1_v.x > 0.0f) p1_v.x -= p1_v.x * drag;
+                if (p1_v.x < 0.0f) p1_v.x += (-p1_v.x) * drag;
+            }
+            if(abs(p1_v.y) < drag) p1_v.y = 0;
+            if (abs(p1_v.y) > 0.0f) {
+                if (p1_v.y > 0.0f) p1_v.y -= p1_v.y * drag;
+                if (p1_v.y < 0.0f) p1_v.y += (-p1_v.y) * drag;
+            }
+
+            p1_p += p1_v * delta;
+            limit(p1_p, bounds, 0);
+            if (p1_p.x == bounds.x || p1_p.x == bounds.y)
+                p1_v.x *= -1;   
+            if (p1_p.y == bounds.z || p1_p.y == bounds.w)
+                p1_v.y *= -1;
         }
         CopyToGpu();
     }
