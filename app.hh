@@ -14,7 +14,6 @@ class Application
 {
 private:
     GLFWwindow *window;
-    
     // OpenGL Debug Message
     static void GLAPIENTRY error_callback(GLenum source,
                                           GLenum type,
@@ -24,9 +23,10 @@ private:
                                           const GLchar *message,
                                           const void *userParam)
     {
-        fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
-                (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
-                type, severity, message);
+        if (false)
+            fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+                    (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
+                    type, severity, message);
     }
 
     // Framework related setup, called by Application::Start()
@@ -68,11 +68,13 @@ private:
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
 protected:
     uint width, height;
     uint fps;
+
 public:
-    // Non-OpenGL Setup 
+    // Non-OpenGL Setup
     // OpenGL functions have not been loaded, and so won't work
     // Defer any OpenGL setup to Init()
     virtual void Setup() = 0;
@@ -95,14 +97,13 @@ public:
             last_t = time();
             delta_a += delta_t;
             m_input();
-            if (delta_a >= (uint64_t) 1000/fps) {
+            if (delta_a >= (uint64_t)1000 / fps)
+            {
                 // std::cout << delta_a << std::endl;
                 m_update(delta_a * .001f);
                 delta_a = 0;
             }
             m_render(delta_t * .001f);
-
-           
         }
     }
 

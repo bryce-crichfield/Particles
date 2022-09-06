@@ -9,40 +9,37 @@
 #include "util.hh"
 
 enum class ShaderID {
-    ID, COUNT
+    ID, PARTICLE_BASIC, COUNT
 };
 const uint ShaderIDCount = static_cast<uint>(ShaderID::COUNT);
 
-#define S1 15
-#define S2 15
+#define S1 2
+#define BUFFER_COUNT 1
 
 class ParticleApplication : public Application 
 {
 private:
-    ParticleBuffer<S1> b1;
-    ParticleBuffer<S2> b2; 
+    Library<ShaderIDCount, ShaderID> shaders;
+    // ParticleBuffer<S1> b1;
+    // ParticleBuffer<S2> b2; 
+    ParticleGroup<S1, BUFFER_COUNT>* b1;
 public:
     void Setup()  override {
-        width = height = 2000;
-        fps = 60;
+        width = height = 750;
+        fps = 1000;
     }
     void Init()   override { 
-        glPointSize(10);
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LESS);
+        shaders.Load(ShaderID::PARTICLE_BASIC, "shaders/vpartbasic.glsl", "shaders/fpartbasic.glsl");
+        glPointSize(15);
+        b1 = new ParticleGroup<S1, BUFFER_COUNT>();
     }
     void Input()  override { }
     void Update(float delta) override { 
-        // Like Kind Attraction
-        b1.Interact<S1>(b1, .5 , .05, .25, delta);
-        b2.Interact<S2>(b2, .75, .05, .25, delta);
-        // Unlike Kind Repulsion
-        b1.Interact<S2>(b2, -.05, .25, .5, delta);
-        b2.Interact<S1>(b1, -.25, .25, .5, delta);
+        b1->Update<S1>(*b1, .15, .05, .25, delta, 
+            glm::vec4(-1, 1, -1, 1), 1);
     }
-    void Render(float delta) override { 
-        b1.Render(1.0f, 0.0f, 0.0f);
-        b2.Render(0.0f, 1.0f, 0.0f);
+    void Render(float delta) override {
+        b1->Render(); 
     }
 };
 

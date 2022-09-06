@@ -39,4 +39,4 @@ float length(float x, float y) {
 }
 
 
-#endif UTIL_HH
+#endif
